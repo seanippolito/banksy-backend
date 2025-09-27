@@ -1,0 +1,71 @@
+# -----------------------
+# Python / FastAPI
+# -----------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyd.dSYM
+*.so
+*.egg
+*.egg-info/
+.eggs/
+
+# -----------------------
+# Poetry / Virtualenvs
+# -----------------------
+.venv/
+poetry.lock
+poetry.toml
+
+# -----------------------
+# Testing / Coverage
+# -----------------------
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+.cache/
+.tox/
+nosetests.xml
+coverage.xml
+
+# -----------------------
+# Logs
+# -----------------------
+*.log
+
+# -----------------------
+# IDE / Editors
+# -----------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------------
+# OS
+# -----------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------
+# Environment / Secrets
+# -----------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------
+# SQLite DB (for local dev)
+# -----------------------
+*.db
+*.sqlite3
+
+# -----------------------
+# Docker
+# -----------------------
+*.pid
+*.seed
