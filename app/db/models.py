@@ -1,10 +1,24 @@
 from datetime import datetime
+from sqlalchemy.sql import func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, Text, String, DateTime, ForeignKey, Integer
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class ApplicationLogger(Base):
+    __tablename__ = "application_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    error_code = Column(Integer, nullable=True)
+    message = Column(Text, nullable=False)
+    location = Column(String(255), nullable=True)  # module/route/function name
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="logs")
 
 class User(Base):
     __tablename__ = "users"
@@ -17,6 +31,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    logs = relationship("ApplicationLogger", back_populates="user")
     accounts: Mapped[list["Account"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 class Account(Base):

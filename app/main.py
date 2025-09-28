@@ -8,6 +8,8 @@ from app.api.v1.users import router as users_router
 from app.api.v1.admin import router as admin_router  # <-- will add this file below
 from app.api.v1.accounts import router as accounts_router
 from app.api.v1.transactions import router as transactions_router
+from app.api.v1.errors import router as errors_router
+from app.middleware.error_logger import error_logger_middleware
 
 app = FastAPI(title="Banksy Backend")
 
@@ -19,6 +21,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
+
+app.middleware("http")(error_logger_middleware)
 
 @app.on_event("startup")
 async def on_startup():
@@ -40,6 +44,7 @@ app.include_router(users_router)
 app.include_router(admin_router)
 app.include_router(accounts_router)
 app.include_router(transactions_router)
+app.include_router(errors_router)
 
 @app.get("/api/v1/health")
 async def health():

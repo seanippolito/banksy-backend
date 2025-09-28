@@ -1,11 +1,16 @@
 from typing import Annotated, Optional
-from fastapi import Depends, HTTPException, status, Header
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status, Header, Request
+from jose import jwt, JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_jwt
 from app.db.session import get_db
 from app.db.models import User
+
+# Existing strict auth
+auth_scheme = HTTPBearer(auto_error=False)
 
 async def get_bearer_token(authorization: Annotated[Optional[str], Header()] = None) -> str:
     if not authorization or not authorization.startswith("Bearer "):
@@ -60,4 +65,27 @@ async def get_current_user(
             await db.refresh(user)
             print(f"[users] updated id={user.id}")
 
+    return user
+
+# ✅ New optional auth
+async def get_current_user_optional(
+        creds: HTTPAuthorizationCredentials = Depends(auth_scheme),
+        db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """Return a User if valid auth provided, else None."""
+    if not creds:
+        return None
+
+    try:
+        payload = jwt.decode(
+            creds.credentials,
+            settings.clerk_jwks_public_key,
+            algorithms=["RS256"],
+            issuer=settings.JWT_ISSUER,
+        )
+        clerk_user_id = payload["sub"]
+    except JWTError:
+        return None
+
+    user = await db.get(User, {"clerk_user_id": clerk_user_id})
     return user
