@@ -8,7 +8,7 @@ load_dotenv(find_dotenv())
 
 class Settings(BaseSettings):
     # DB & server
-    DATABASE_URL: str = "sqlite+aiosqlite:///./banksy.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./data/banksy.db"
 
     # Clerk / JWT
     CLERK_JWKS_URL: str = Field(..., description="Clerk JWKS endpoint")
