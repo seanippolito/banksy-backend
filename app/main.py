@@ -1,11 +1,42 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from app.db.session import engine
+from app.db.models import Base
+from app.api.v1.users import router as users_router
+from app.core.config import settings
+from app.api.v1.admin import router as admin_router  # <-- will add this file below
 
 app = FastAPI(title="Banksy Backend")
 
+# CORS (allow the frontend origin & auth header)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+)
+
 @app.on_event("startup")
-async def show_startup_message():
+async def on_startup():
+    # Auto-create tables for dev/SQLite. For Postgres prod, use Alembic.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        try:
+            # Log tables present (SQLite)
+            res = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+            tables = [r[0] for r in res.fetchall()]
+            print("[startup] DB:", settings.DATABASE_URL)
+            print("[startup] Tables:", tables)
+        except Exception as e:
+            print("[startup] Could not list tables:", repr(e))
+    print("DB ready at", settings.DATABASE_URL)
     print("Banksy Backend available at http://127.0.0.1:8000 (mapped from 0.0.0.0 inside Docker), health check is available at http://127.0.0.1:8000/api/v1/health")
 
+app.include_router(users_router)
+app.include_router(admin_router)
+
 @app.get("/api/v1/health")
-async def health_check():
+async def health():
     return {"status": "ok", "service": "Banksy Backend Test Me ✅"}
