@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import select
 from app.db.models import ApplicationLogger
+from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_errors_authenticated(authorized_client, db_session):
@@ -19,3 +20,9 @@ async def test_errors_authenticated(authorized_client, db_session):
     data = resp.json()
     assert isinstance(data, list)
     assert any("Unit test error" in e["message"] for e in data)
+
+@pytest.mark.asyncio
+async def test_error_logger_pass_through(client: AsyncClient):
+    resp = await client.get("/api/v1/health")
+    assert resp.status_code == 200
+    # Should not create any ApplicationLogger entries

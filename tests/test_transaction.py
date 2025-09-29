@@ -44,3 +44,28 @@ async def test_create_transaction_invalid_account(authorized_client: AsyncClient
     resp = await authorized_client.post("/api/v1/transactions", json=payload)
     assert resp.status_code == 404
     assert resp.json()["detail"] == "Account not found"
+
+@pytest.mark.asyncio
+async def test_create_transaction_invalid_account(authorized_client: AsyncClient):
+    payload = {
+        "account_id": 9999,  # not owned
+        "amount": 100,
+        "type": "CREDIT",
+        "description": "Invalid test",
+    }
+    resp = await authorized_client.post("/api/v1/transactions", json=payload)
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_list_transactions_empty(authorized_client: AsyncClient, db_session):
+    # Create a dummy account for the user
+    acc = Account(user_id=1, name="Test Account", currency="USD")
+    db_session.add(acc)
+    await db_session.commit()
+    await db_session.refresh(acc)
+
+    # Pass account_id param if required
+    resp = await authorized_client.get(f"/api/v1/transactions?account_id={acc.id}")
+    assert resp.status_code == 200
+    assert resp.json() == []

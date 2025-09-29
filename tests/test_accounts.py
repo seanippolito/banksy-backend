@@ -62,3 +62,32 @@ async def test_get_account_by_id(authorized_client: AsyncClient, db_session):
     data = resp.json()
     assert data["id"] == account.id
     assert data["name"] == "Investment"
+
+@pytest.mark.asyncio
+async def test_get_account_by_id_wrong_user(authorized_client: AsyncClient, db_session):
+    """
+    Ensure that fetching an account belonging to a different user
+    returns 404 (ownership enforced).
+    """
+    # Create a *different* user
+    other_user = User(
+        clerk_user_id="clerk_other_user",
+        email="other@example.com",
+        first_name="Other",
+        last_name="User",
+    )
+    db_session.add(other_user)
+    await db_session.commit()
+    await db_session.refresh(other_user)
+
+    # Create an account owned by this other user
+    account = Account(name="Foreign Account", currency="USD", user_id=other_user.id)
+    db_session.add(account)
+    await db_session.commit()
+    await db_session.refresh(account)
+
+    # The authorized client should NOT be able to fetch this account
+    resp = await authorized_client.get(f"/api/v1/accounts/{account.id}")
+    assert resp.status_code == 404
+    data = resp.json()
+    assert data["detail"] == "Account not found"
