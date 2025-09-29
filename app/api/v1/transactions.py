@@ -34,7 +34,7 @@ async def create_transaction(
 
     tx = Transaction(
         account_id=payload.account_id,
-        amount=payload.amount_cents,   # stored in cents
+        amount=payload.amount,   # stored in cents
         type=payload.type,
         description=payload.description,
     )

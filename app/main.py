@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -11,21 +12,10 @@ from app.api.v1.transactions import router as transactions_router
 from app.api.v1.errors import router as errors_router
 from app.middleware.error_logger import error_logger_middleware
 
-app = FastAPI(title="Banksy Backend")
-
-# CORS (allow the frontend origin & auth header)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list(),
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
-)
-
-app.middleware("http")(error_logger_middleware)
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup code
+    print("App starting up...")
     # Auto-create tables for dev/SQLite. For Postgres prod, use Alembic.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -39,6 +29,26 @@ async def on_startup():
             print("[startup] Could not list tables:", repr(e))
     print("DB ready at", settings.DATABASE_URL)
     print("Banksy Backend available at http://127.0.0.1:8000 (mapped from 0.0.0.0 inside Docker), health check is available at http://127.0.0.1:8000/api/v1/health")
+    yield
+    # Shutdown code
+    print("App shutting down...")
+
+app = FastAPI(
+    title="Banksy API",
+    openapi_url="/openapi.json",
+    lifespan=lifespan,
+)
+
+# CORS (allow the frontend origin & auth header)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+)
+
+app.middleware("http")(error_logger_middleware)
 
 app.include_router(users_router)
 app.include_router(admin_router)

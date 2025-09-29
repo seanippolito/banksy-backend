@@ -4,7 +4,7 @@ from datetime import datetime
 
 class TransactionCreate(BaseModel):
     account_id: int
-    amount_cents: int = Field(..., gt=0)     # positive integer cents
+    amount: int = Field(..., gt=0)     # positive integer cents
     type: str = Field(..., pattern="^(DEBIT|CREDIT)$")
     description: str | None = None
 
