@@ -5,6 +5,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Account, Transaction, User
 from app.schemas.money_transfer import MoneyTransferCreate
+from app.schemas.transaction import TransactionRead
 from uuid import uuid4
 
 router = APIRouter(prefix="/api/v1/money-transfers", tags=["money_transfers"])
@@ -55,3 +56,21 @@ async def create_money_transfer(
 
     await db.commit()
     return {"transfer_id": transfer_id, "status": "success"}
+
+@router.get("/{transfer_id}", response_model=list[TransactionRead])
+async def get_transfer(
+        transfer_id: str,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    # Only return transactions owned by this user
+    res = await db.execute(
+        select(Transaction).where(
+            Transaction.transfer_id == transfer_id,
+            Transaction.account.has(user_id=user.id),
+            )
+    )
+    txs = res.scalars().all()
+    if not txs:
+        raise HTTPException(status_code=404, detail="Transfer not found")
+    return txs

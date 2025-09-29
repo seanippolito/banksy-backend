@@ -34,6 +34,8 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     data = resp.json()
     assert "transfer_id" in data
 
+    transfer_id = data["transfer_id"]
+
     # Verify two transactions created
     txs = await db_session.execute(
         select(Transaction).where(Transaction.transfer_id == data["transfer_id"])
@@ -42,6 +44,14 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     assert len(txs) == 2
     assert any(tx.amount == -500 for tx in txs)
     assert any(tx.amount == 500 for tx in txs)
+
+    # Verify via GET /money-transfers/{id}
+    resp_get = await authorized_client.get(f"/api/v1/money-transfers/{transfer_id}")
+    assert resp_get.status_code == 200
+    tx_data = resp_get.json()
+    assert len(tx_data) == 2
+    assert any(t["amount"] == -500 for t in tx_data)
+    assert any(t["amount"] == 500 for t in tx_data)
 
 
 @pytest.mark.asyncio
@@ -65,3 +75,17 @@ async def test_money_transfer_invalid_recipient(authorized_client: AsyncClient, 
         }
     )
     assert resp.status_code == 404
+
+@pytest.mark.asyncio
+async def test_money_transfer_invalid_sender(authorized_client: AsyncClient):
+    # Neither sender nor recipient exists
+    resp = await authorized_client.post(
+        "/api/v1/money-transfers",
+        json={
+            "sender_account_id": 9999,
+            "recipient_account_id": 8888,
+            "amount": 100,
+        },
+    )
+    assert resp.status_code == 404
+    assert "Sender account not found" in resp.text
