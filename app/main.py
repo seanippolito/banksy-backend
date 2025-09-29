@@ -9,6 +9,8 @@ from app.api.v1.users import router as users_router
 from app.api.v1.admin import router as admin_router  # <-- will add this file below
 from app.api.v1.accounts import router as accounts_router
 from app.api.v1.transactions import router as transactions_router
+from app.api.v1.account_holders import router as account_holders_router
+from app.api.v1.cards import router as cards_router
 from app.api.v1.errors import router as errors_router
 from app.middleware.error_logger import error_logger_middleware
 
@@ -54,6 +56,8 @@ app.include_router(users_router)
 app.include_router(admin_router)
 app.include_router(accounts_router)
 app.include_router(transactions_router)
+app.include_router(account_holders_router)
+app.include_router(cards_router)
 app.include_router(errors_router)
 
 @app.get("/api/v1/health")

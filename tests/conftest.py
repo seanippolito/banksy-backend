@@ -110,6 +110,20 @@ async def authorized_client(db_session):
         yield ac
 
 @pytest_asyncio.fixture
+async def test_user(db_session: AsyncSession):
+    """Create and return a test user in the DB."""
+    user = User(
+        clerk_user_id="clerk_test_user_fixture",
+        email="fixtureuser@example.com",
+        first_name="Fixture",
+        last_name="User",
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+@pytest_asyncio.fixture
 async def test_account(db_session):
     """Create a test account tied to the authorized test user."""
     # Grab the first test user from DB (should exist from authorized_client fixture)
