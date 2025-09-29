@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pathlib import Path
 import os
 
-from app.db.session import get_db, engine
+from app.db.session import get_db, get_engine
 from app.db.models import User
 from app.schemas.user import UserRead
 from app.core.config import settings
@@ -30,7 +30,7 @@ async def dbinfo():
     # List tables via pragma (SQLite) or generic reflection fallback
     tables = []
     try:
-        async with engine.begin() as conn:
+        async with get_engine.begin() as conn:
             res = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
             tables = [r[0] for r in res.fetchall()]
     except Exception as e:

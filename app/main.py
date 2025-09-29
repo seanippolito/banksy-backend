@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from app.db.session import engine
+from app.db.session import get_engine
 from app.db.models import Base
 from app.core.config import settings
 from app.api.v1.users import router as users_router
@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     # Startup code
     print("App starting up...")
     # Auto-create tables for dev/SQLite. For Postgres prod, use Alembic.
-    async with engine.begin() as conn:
+    async with get_engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         try:
             # Log tables present (SQLite)

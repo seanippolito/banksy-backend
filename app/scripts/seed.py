@@ -1,11 +1,12 @@
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_sessionmaker
 from app.db.models import User, Account
 
 async def main():
-    async with AsyncSessionLocal() as db:  # type: AsyncSession
+    SessionLocal = get_sessionmaker()
+    async with SessionLocal() as db:  # type: AsyncSession
         # pick first user
         user = (await db.execute(select(User).order_by(User.id.asc()))).scalars().first()
         if not user:
