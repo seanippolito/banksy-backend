@@ -50,13 +50,18 @@ async def db_session():
     SessionLocal = get_sessionmaker()
     async with SessionLocal() as session:
         yield session # cleanup
-        await session.rollback()
 
 @pytest_asyncio.fixture(autouse=True)
 async def clean_tables(db_session):
     for table in reversed(Base.metadata.sorted_tables):
         await db_session.execute(table.delete())
     await db_session.commit()
+
+@pytest_asyncio.fixture(autouse=True)
+def reset_overrides():
+    app.dependency_overrides = {}
+    yield
+    app.dependency_overrides = {}
 
 # -------------------------------------------------------------------
 # CLIENT FIXTURE
