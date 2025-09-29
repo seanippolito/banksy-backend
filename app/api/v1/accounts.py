@@ -16,7 +16,7 @@ async def list_accounts(
     res = await db.execute(select(Account).where(Account.user_id == user.id).order_by(Account.id.asc()))
     return res.scalars().all()
 
-@router.post("", response_model=AccountRead)
+@router.post("", response_model=AccountRead, status_code=201)
 async def create_account(
         payload: AccountCreate,
         db: AsyncSession = Depends(get_db),
@@ -28,3 +28,17 @@ async def create_account(
     await db.commit()
     await db.refresh(acc)
     return acc
+
+@router.get("/{account_id}", response_model=AccountRead)
+async def get_account_by_id(
+        account_id: int,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    res = await db.execute(
+        select(Account).where(Account.id == account_id, Account.user_id == user.id)
+    )
+    account = res.scalar_one_or_none()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return account
