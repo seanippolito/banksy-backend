@@ -22,13 +22,11 @@ async def create_money_transfer(
         Account.user_id == user.id
     ))
 
-    print(f"Sender: {sender}")
     if not sender:
         raise HTTPException(status_code=404, detail="Sender account not found")
 
     # Validate recipient account exists
     recipient = await db.scalar(select(Account).where(Account.id == payload.recipient_account_id))
-    print(f"Sender: {recipient}")
     if not recipient:
         raise HTTPException(status_code=404, detail="Recipient account not found")
 
@@ -37,18 +35,19 @@ async def create_money_transfer(
     # Debit from sender
     debit = Transaction(
         account_id=sender.id,
-        amount=-payload.amount,
-        type="debit",
+        amount=payload.amount,
+        type="DEBIT",
         description=payload.description or f"Transfer to {recipient.id}",
         transfer_id=transfer_id,
     )
     db.add(debit)
 
+
     # Credit to recipient
     credit = Transaction(
         account_id=recipient.id,
         amount=payload.amount,
-        type="credit",
+        type="CREDIT",
         description=payload.description or f"Transfer from {sender.id}",
         transfer_id=transfer_id,
     )

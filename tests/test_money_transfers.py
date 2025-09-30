@@ -44,6 +44,11 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     assert len(txs) == 2
     assert any(tx.amount == -500 for tx in txs)
     assert any(tx.amount == 500 for tx in txs)
+    debit = next(t for t in txs if t.account_id == sender.id)
+    credit = next(t for t in txs if t.account_id == recipient.id)
+    print(f"Debit: {debit.amount} | Credit: {credit.amount}")
+    assert debit.type == "DEBIT" and debit.amount < 0
+    assert credit.type == "CREDIT" and credit.amount > 0
 
     # Verify via GET /money-transfers/{id}
     resp_get = await authorized_client.get(f"/api/v1/money-transfers/{transfer_id}")

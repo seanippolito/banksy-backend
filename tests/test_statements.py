@@ -16,8 +16,8 @@ async def test_generate_statements(authorized_client: AsyncClient, db_session):
     await db_session.commit()
     await db_session.refresh(account)
 
-    tx1 = Transaction(account_id=account.id, amount=1000, type="credit", description="Deposit")
-    tx2 = Transaction(account_id=account.id, amount=-200, type="debit", description="Withdrawal")
+    tx1 = Transaction(account_id=account.id, amount=1000, type="CREDIT", description="Deposit")
+    tx2 = Transaction(account_id=account.id, amount=-200, type="DEBIT", description="Withdrawal")
     db_session.add_all([tx1, tx2])
     await db_session.commit()
 
