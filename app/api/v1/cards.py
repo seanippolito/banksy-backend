@@ -5,6 +5,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.db.models import Card, User, Account
 from app.schemas.card import CardCreate, CardRead
+import random
 
 router = APIRouter(prefix="/api/v1/cards", tags=["cards"])
 
@@ -43,6 +44,36 @@ async def create_card(
     )
     db.add(card)
     await db.flush()
+    await db.commit()
+    await db.refresh(card)
+    return card
+
+@router.post("/ship/{account_id}", response_model=CardRead)
+async def ship_card(
+        account_id: int,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    # Verify account belongs to user
+    res = await db.execute(
+        select(Account).where(Account.id == account_id, Account.user_id == user.id)
+    )
+    account = res.scalar_one_or_none()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    last_4 = f"{random.randint(0, 9999):04}"
+
+    # Create card
+    card = Card(
+        account_id=account.id,
+        card_number_last4=last_4,  # mock/test value
+        card_type="CREDIT",
+        expiration_month=12,
+        expiration_year=2030,
+        status="Active",
+    )
+    db.add(card)
     await db.commit()
     await db.refresh(card)
     return card

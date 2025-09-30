@@ -18,7 +18,7 @@ async def test_create_card(authorized_client: AsyncClient, db_session):
     payload = {
         "account_id": acc.id,
         "card_number_last4": "1234",
-        "card_type": "Debit",
+        "card_type": "DEBIT",
         "expiration_month": 12,
         "expiration_year": 2030,
         "status": "Active",
