@@ -70,10 +70,8 @@ async def add_holder(
         db: AsyncSession = Depends(get_db),
         user: User = Depends(get_current_user),
 ):
-    print(f"account")
     # Ensure primary user owns account
     acc = await db.get(Account, account_id)
-    print(f"account {acc.user_id}")
     if not acc or acc.user_id != user.id:
         raise HTTPException(status_code=404, detail="Account not found")
 

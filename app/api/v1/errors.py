@@ -13,7 +13,5 @@ async def list_errors(
         db: AsyncSession = Depends(get_db),
         user=Depends(get_current_user),  # TODO: restrict to admin role
 ):
-    print("return errors enter")
     res = await db.execute(select(ApplicationLogger).order_by(ApplicationLogger.created_at.desc()))
-    print("return errors exit")
     return res.scalars().all()

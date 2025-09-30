@@ -15,8 +15,6 @@ async def test_create_transaction(authorized_client, test_account, db_session):
     resp = await authorized_client.post("/api/v1/transactions", json=payload)
     assert resp.status_code == 201
 
-    print(resp.json())
-
     data = resp.json()
     assert data["account_id"] == test_account.id
     assert data["amount"] == 5000

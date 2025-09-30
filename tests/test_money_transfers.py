@@ -18,8 +18,6 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     await db_session.refresh(sender)
     await db_session.refresh(recipient)
 
-    print(
-        f"Sender: {sender.id} | Recipient: {recipient.id}")
     # Perform transfer
     resp = await authorized_client.post(
         "/api/v1/money-transfers",

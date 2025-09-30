@@ -41,13 +41,11 @@ async def test_list_account_holders(authorized_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_add_holder(authorized_client: AsyncClient, test_account):
-    print(f"test_account: {test_account.id}")
-
     resp = await authorized_client.post(
         f"/api/v1/account-holders/{test_account.id}/holders",
         json={"user_id": test_account.user_id, "account_id": test_account.id, "holder_type": "PRIMARY"},
     )
-    print(resp.json())
+
     assert resp.status_code == 200
     data = resp.json()
     assert data["account_id"] == test_account.id
@@ -70,7 +68,6 @@ async def test_remove_holder(authorized_client: AsyncClient, db_session, test_ac
     )
     holder = resp.json()
 
-    print(f"holder: {holder}")
     # Now remove it
     resp = await authorized_client.delete(f"/api/v1/account-holders/holders/{holder['id']}")
     assert resp.status_code == 200
