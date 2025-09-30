@@ -17,6 +17,7 @@ async def test_create_account(authorized_client: AsyncClient, db_session):
     }
 
     resp = await authorized_client.post("/api/v1/accounts", json=payload)
+    print(resp.json())
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == payload["name"]

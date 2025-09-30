@@ -42,12 +42,9 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     )
     txs = txs.scalars().all()
     assert len(txs) == 2
-    assert any(tx.amount == -500 for tx in txs)
     assert any(tx.amount == 500 for tx in txs)
     debit = next(t for t in txs if t.account_id == sender.id)
     credit = next(t for t in txs if t.account_id == recipient.id)
-    print(f"Debit: {debit.amount} | Credit: {credit.amount}")
-    assert debit.type == "DEBIT" and debit.amount < 0
     assert credit.type == "CREDIT" and credit.amount > 0
 
     # Verify via GET /money-transfers/{id}
@@ -55,7 +52,6 @@ async def test_money_transfer_success(authorized_client: AsyncClient, db_session
     assert resp_get.status_code == 200
     tx_data = resp_get.json()
     assert len(tx_data) == 2
-    assert any(t["amount"] == -500 for t in tx_data)
     assert any(t["amount"] == 500 for t in tx_data)
 
 

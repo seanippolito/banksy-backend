@@ -43,3 +43,62 @@ async def create_account_holder(
     await db.commit()
     await db.refresh(ah)
     return ah
+
+# List all holders for an account
+@router.get("/{account_id}/holders", response_model=list[AccountHolderRead])
+async def list_holders(
+        account_id: int,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    # Ensure user owns account
+    acc = await db.get(Account, account_id)
+    if not acc or acc.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    res = await db.execute(
+        select(AccountHolder).where(AccountHolder.account_id == account_id)
+    )
+    return res.scalars().all()
+
+
+# Add a new holder
+@router.post("/{account_id}/holders", response_model=AccountHolderRead)
+async def add_holder(
+        account_id: int,
+        payload: AccountHolderCreate,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    print(f"account")
+    # Ensure primary user owns account
+    acc = await db.get(Account, account_id)
+    print(f"account {acc.user_id}")
+    if not acc or acc.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    holder = AccountHolder(account_id=account_id, user_id=payload.user_id, holder_type=payload.holder_type)
+    db.add(holder)
+    await db.commit()
+    await db.refresh(holder)
+    return holder
+
+
+# Remove a holder
+@router.delete("/holders/{holder_id}")
+async def remove_holder(
+        holder_id: int,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(get_current_user),
+):
+    holder = await db.get(AccountHolder, holder_id)
+    if not holder:
+        raise HTTPException(status_code=404, detail="Holder not found")
+
+    acc = await db.get(Account, holder.account_id)
+    if not acc or acc.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to remove holder")
+
+    await db.delete(holder)
+    await db.commit()
+    return {"ok": True}

@@ -13,6 +13,7 @@ class AccountHolderCreate(AccountHolderBase):
 
 class AccountHolderRead(AccountHolderBase):
     id: int
+    account_id: int
 
     class Config:
         from_attributes = True

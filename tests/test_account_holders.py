@@ -38,3 +38,40 @@ async def test_list_account_holders(authorized_client: AsyncClient):
     resp = await authorized_client.get("/api/v1/account-holders")
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
+
+@pytest.mark.asyncio
+async def test_add_holder(authorized_client: AsyncClient, test_account):
+    print(f"test_account: {test_account.id}")
+
+    resp = await authorized_client.post(
+        f"/api/v1/account-holders/{test_account.id}/holders",
+        json={"user_id": test_account.user_id, "account_id": test_account.id, "holder_type": "PRIMARY"},
+    )
+    print(resp.json())
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["account_id"] == test_account.id
+    assert data["user_id"] == test_account.user_id
+
+
+@pytest.mark.asyncio
+async def test_list_holders(authorized_client: AsyncClient, test_account):
+    resp = await authorized_client.get(f"/api/v1/account-holders/{test_account.id}/holders")
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
+
+
+@pytest.mark.asyncio
+async def test_remove_holder(authorized_client: AsyncClient, db_session, test_account):
+    # Add a holder first
+    resp = await authorized_client.post(
+        f"/api/v1/account-holders/{test_account.id}/holders",
+        json={"user_id": test_account.user_id, "account_id": test_account.id, "holder_type": "JOINT"},
+    )
+    holder = resp.json()
+
+    print(f"holder: {holder}")
+    # Now remove it
+    resp = await authorized_client.delete(f"/api/v1/account-holders/holders/{holder['id']}")
+    assert resp.status_code == 200
+    assert resp.json()["ok"] is True

@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.db.models import Account, User
+from app.db.models import Account, User, AccountHolder
 from app.schemas.account import AccountCreate, AccountRead
 
 router = APIRouter(prefix="/api/v1/accounts", tags=["accounts"])
@@ -25,6 +25,16 @@ async def create_account(
     acc = Account(user_id=user.id, name=payload.name, currency=payload.currency)
     db.add(acc)
     await db.flush()
+
+    # Create a PRIMARY account holder automatically
+    holder = AccountHolder(
+        user_id=user.id,
+        account_id=acc.id,
+        holder_type="PRIMARY"
+    )
+
+    db.add(holder)
+
     await db.commit()
     await db.refresh(acc)
     return acc

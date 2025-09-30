@@ -17,7 +17,7 @@ async def test_generate_statements(authorized_client: AsyncClient, db_session):
     await db_session.refresh(account)
 
     tx1 = Transaction(account_id=account.id, amount=1000, type="CREDIT", description="Deposit")
-    tx2 = Transaction(account_id=account.id, amount=-200, type="DEBIT", description="Withdrawal")
+    tx2 = Transaction(account_id=account.id, amount=200, type="DEBIT", description="Withdrawal")
     db_session.add_all([tx1, tx2])
     await db_session.commit()
 
@@ -28,9 +28,10 @@ async def test_generate_statements(authorized_client: AsyncClient, db_session):
     )
     assert resp.status_code == 200
     data = resp.json()
+    print(f"Data: {data}")
     assert isinstance(data, list)
     assert len(data) == 1
-    assert data[0]["account_id"] == str(account.id)
+    assert data[0]["account_id"] == account.id
     assert data[0]["balance"] == 800
     assert len(data[0]["transactions"]) == 2
 
