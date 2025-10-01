@@ -58,7 +58,7 @@ Thumbs.db
 .env.production
 .env.development
 .env.local
-.env.test
+!.env.test
 !.env.example  # keep an example template if you want
 
 # -----------------------
