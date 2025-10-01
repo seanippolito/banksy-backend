@@ -39,6 +39,7 @@ RUN poetry install --only main --no-root
 # Stage 2: Runner (production)
 # -------------------------------
 FROM base AS runner
+RUN mkdir -p /app/data
 # Bring in the populated /opt/venv
 COPY --from=builder-prod /opt/venv /opt/venv
 
