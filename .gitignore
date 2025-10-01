@@ -55,8 +55,11 @@ Thumbs.db
 # Environment / Secrets
 # -----------------------
 .env
-.env.*
-!.env.example
+.env.production
+.env.development
+.env.local
+.env.test
+!.env.example  # keep an example template if you want
 
 # -----------------------
 # SQLite DB (for local dev)
