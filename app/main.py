@@ -35,7 +35,12 @@ async def lifespan(app: FastAPI):
     print("Banksy Backend available at http://127.0.0.1:8000 (mapped from 0.0.0.0 inside Docker), health check is available at http://127.0.0.1:8000/api/v1/health")
     yield
     # Shutdown code
+    # --- Shutdown ---
     print("App shutting down...")
+    if get_engine():
+        await get_engine().dispose()
+        print("Database connections disposed.")
+    print("Shutdown complete. Goodbye! 👋")
 
 app = FastAPI(
     title="Banksy API",
